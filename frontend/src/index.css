@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-[#FAFAFC] text-slate-900 font-sans antialiased;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Clean White Panel & Card Utility Classes */
+.glass-panel {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+}
+
+.glass-card {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+}
+
+.glass-modal {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+}
+
+/* StampMyVisa Status Badges (Dot + Soft Tint) */
+.status-badge-new {
+  @apply bg-[#F5F4FF] text-[#5E56E7] border border-[#DDD9FE];
+}
+
+.status-badge-contacted {
+  @apply bg-blue-50 text-blue-700 border border-blue-200;
+}
+
+.status-badge-confirmed {
+  @apply bg-emerald-50 text-emerald-700 border border-emerald-200;
+}
+
+.status-badge-completed {
+  @apply bg-purple-50 text-purple-700 border border-purple-200;
+}
+
+.status-badge-cancelled {
+  @apply bg-rose-50 text-rose-700 border border-rose-200;
+}
+
+.status-badge-review {
+  @apply bg-amber-50 text-amber-800 border border-amber-300 animate-pulse;
+}
+
+/* Text Highlights for Email entity extraction */
+mark.entity-highlight {
+  @apply bg-[#F5F4FF] text-[#5E56E7] px-1 py-0.5 rounded border border-[#DDD9FE] font-medium;
+}
+
