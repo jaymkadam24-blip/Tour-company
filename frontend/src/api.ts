@@ -7,6 +7,32 @@ function getAuthHeader(): Record<string, string> {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+async function safeFetchJson<T = any>(url: string, options?: RequestInit): Promise<T> {
+  let res: Response;
+  try {
+    res = await fetch(url, options);
+  } catch {
+    throw new Error('Unable to connect to backend server. Please make sure the backend is running on port 5000.');
+  }
+
+  const text = await res.text();
+  let json: any;
+  if (text) {
+    try {
+      json = JSON.parse(text);
+    } catch {
+      throw new Error(`Server returned non-JSON response (HTTP ${res.status} ${res.statusText}).`);
+    }
+  } else {
+    if (!res.ok) {
+      throw new Error(`Server returned HTTP ${res.status} ${res.statusText} with empty response.`);
+    }
+    json = {};
+  }
+
+  return json;
+}
+
 export async function fetchApplications(params?: {
   status?: string;
   search?: string;
@@ -23,19 +49,17 @@ export async function fetchApplications(params?: {
   if (params?.sort) query.append('sort', params.sort);
   if (params?.order) query.append('order', params.order);
 
-  const res = await fetch(`${API_BASE}/applications?${query.toString()}`, {
+  const json = await safeFetchJson(`${API_BASE}/applications?${query.toString()}`, {
     headers: { ...getAuthHeader() }
   });
-  const json = await res.json();
   if (!json.success) throw new Error(json.error || 'Failed to fetch applications');
   return { applications: json.data, stats: json.stats };
 }
 
 export async function fetchApplicationById(id: string | number): Promise<Application> {
-  const res = await fetch(`${API_BASE}/applications/${id}`, {
+  const json = await safeFetchJson(`${API_BASE}/applications/${id}`, {
     headers: { ...getAuthHeader() }
   });
-  const json = await res.json();
   if (!json.success) throw new Error(json.error || 'Failed to fetch application');
   return json.data;
 }
@@ -44,7 +68,7 @@ export async function updateApplication(
   id: number | string,
   updates: Partial<Application>
 ): Promise<Application> {
-  const res = await fetch(`${API_BASE}/applications/${id}`, {
+  const json = await safeFetchJson(`${API_BASE}/applications/${id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -52,32 +76,29 @@ export async function updateApplication(
     },
     body: JSON.stringify(updates)
   });
-  const json = await res.json();
   if (!json.success) throw new Error(json.error || 'Failed to update application');
   return json.data;
 }
 
 export async function deleteApplication(id: number | string): Promise<void> {
-  const res = await fetch(`${API_BASE}/applications/${id}`, {
+  const json = await safeFetchJson(`${API_BASE}/applications/${id}`, {
     method: 'DELETE',
     headers: { ...getAuthHeader() }
   });
-  const json = await res.json();
   if (!json.success) throw new Error(json.error || 'Failed to delete application');
 }
 
 export async function reExtractApplication(id: number | string): Promise<Application> {
-  const res = await fetch(`${API_BASE}/applications/${id}/re-extract`, {
+  const json = await safeFetchJson(`${API_BASE}/applications/${id}/re-extract`, {
     method: 'POST',
     headers: { ...getAuthHeader() }
   });
-  const json = await res.json();
   if (!json.success) throw new Error(json.error || 'Failed to re-extract application');
   return json.data;
 }
 
 export async function createApplication(data: Partial<Application> & { raw_email_text?: string }): Promise<Application> {
-  const res = await fetch(`${API_BASE}/applications`, {
+  const json = await safeFetchJson(`${API_BASE}/applications`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -85,7 +106,6 @@ export async function createApplication(data: Partial<Application> & { raw_email
     },
     body: JSON.stringify(data)
   });
-  const json = await res.json();
   if (!json.success) throw new Error(json.error || 'Failed to create application');
   return json.data;
 }
@@ -96,7 +116,7 @@ export async function simulateEmailIngestion(data: {
   subject: string;
   body: string;
 }): Promise<{ status: string; applicationId?: string; application?: Application }> {
-  const res = await fetch(`${API_BASE}/emails/simulate`, {
+  const json = await safeFetchJson(`${API_BASE}/emails/simulate`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -104,28 +124,25 @@ export async function simulateEmailIngestion(data: {
     },
     body: JSON.stringify(data)
   });
-  const json = await res.json();
-  if (!res.ok && !json.success) {
+  if (!json.success) {
     throw new Error(json.message || json.error || 'Failed to simulate email');
   }
   return { status: json.result?.status, applicationId: json.result?.applicationId, application: json.application };
 }
 
 export async function triggerEmailSync(): Promise<{ processedCount: number; duplicatesCount: number; errors: string[] }> {
-  const res = await fetch(`${API_BASE}/emails/sync`, {
+  const json = await safeFetchJson(`${API_BASE}/emails/sync`, {
     method: 'POST',
     headers: { ...getAuthHeader() }
   });
-  const json = await res.json();
   if (!json.success) throw new Error(json.error || 'Failed to sync emails');
   return json.result;
 }
 
 export async function fetchEmailSyncStatus(): Promise<{ gmail_connected: boolean; gmail_email: string; last_sync: unknown }> {
-  const res = await fetch(`${API_BASE}/emails/status`, {
+  const json = await safeFetchJson(`${API_BASE}/emails/status`, {
     headers: { ...getAuthHeader() }
   });
-  const json = await res.json();
   if (!json.success) throw new Error(json.error || 'Failed to fetch email status');
   return json.data;
 }
@@ -142,16 +159,15 @@ export function downloadExcelExport(params?: { status?: string; search?: string;
 }
 
 export async function fetchSettings(): Promise<SystemSettings> {
-  const res = await fetch(`${API_BASE}/settings`, {
+  const json = await safeFetchJson(`${API_BASE}/settings`, {
     headers: { ...getAuthHeader() }
   });
-  const json = await res.json();
   if (!json.success) throw new Error(json.error || 'Failed to fetch settings');
   return json.data;
 }
 
 export async function saveSettings(settings: Partial<SystemSettings>): Promise<void> {
-  const res = await fetch(`${API_BASE}/settings`, {
+  const json = await safeFetchJson(`${API_BASE}/settings`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -159,17 +175,15 @@ export async function saveSettings(settings: Partial<SystemSettings>): Promise<v
     },
     body: JSON.stringify(settings)
   });
-  const json = await res.json();
   if (!json.success) throw new Error(json.error || 'Failed to save settings');
 }
 
 export async function login(username: string, password: string): Promise<{ user: User; token: string }> {
-  const res = await fetch(`${API_BASE}/auth/login`, {
+  const json = await safeFetchJson(`${API_BASE}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password })
   });
-  const json = await res.json();
   if (!json.success) throw new Error(json.error || 'Login failed');
   localStorage.setItem('tour_admin_token', json.token);
   return { user: json.user, token: json.token };
@@ -177,10 +191,9 @@ export async function login(username: string, password: string): Promise<{ user:
 
 export async function verifyAuth(): Promise<User | null> {
   try {
-    const res = await fetch(`${API_BASE}/auth/me`, {
+    const json = await safeFetchJson(`${API_BASE}/auth/me`, {
       headers: { ...getAuthHeader() }
     });
-    const json = await res.json();
     if (json.success) return json.user;
     return null;
   } catch {

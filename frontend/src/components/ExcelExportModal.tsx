@@ -42,7 +42,7 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fade-in">
       <div className="bg-white w-full max-w-lg rounded-3xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col text-slate-900">
-        
+
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
           <div className="flex items-center space-x-3">
@@ -61,7 +61,7 @@ export const ExcelExportModal: React.FC<ExcelExportModalProps> = ({
 
         {/* Content */}
         <div className="p-6 space-y-4 text-xs">
-          
+
           {/* Status Filter */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
